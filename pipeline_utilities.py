@@ -1,6 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -46,10 +46,12 @@ def logistic_regression_model_generator(X_train, X_test, y_train, y_test, r_stat
     predictions = model.predict(X_test)
     
     # Review the predictions
-    print(f"Logistic Regression Predictions: {predictions}")
+    #print(f"Logistic Regression Predictions: {predictions}")
 
     # Calculate the accuracy score by evaluating `y_test` vs. `testing_predictions`
-    print(f"Logistic Regression Predictions: {accuracy_score(y_test, predictions)}")
+    print(f"Logistic Regression Predictions Accuracy Score: {accuracy_score(y_test, predictions)}")
+    print(classification_report(y_test, predictions, labels = [1, 0]))
+    print(f"Logistic Regression Balanced Accuracy Score: {balanced_accuracy_score(y_test, predictions)}")
 
 def random_forest_model_generator(X_train, X_test, y_train, y_test, r_state, estimator_count, X_columns):
     """
@@ -69,10 +71,12 @@ def random_forest_model_generator(X_train, X_test, y_train, y_test, r_state, est
 
     # Make predictions using testing data
     predictions = model.predict(X_test)
-    print(f"Random Forest Predictions: {predictions}")
+    #print(f"Random Forest Predictions: {predictions}")
 
     # Print the accuracy score
-    print(f"Random Forest Predictions: {accuracy_score(y_test, predictions)}")
+    print(f"Random Forest Predictions Accuracy Score: {accuracy_score(y_test, predictions)}")
+    print(classification_report(y_test, predictions, labels = [1, 0]))
+    print(f"Random Forest Balanced Accuracy Score: {balanced_accuracy_score(y_test, predictions)}")
     
     # Get the feature importance array
     importances = model.feature_importances_
