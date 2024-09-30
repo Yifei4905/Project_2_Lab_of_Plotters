@@ -1,9 +1,10 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 import pandas as pd
 
 def scale_data_with_StandardScaler(X_train, X_test):
@@ -28,6 +29,17 @@ def scale_data_with_StandardScaler(X_train, X_test):
     # Return the scaled data
     return X_train_scaled, X_test_scaled
 
+def display_accuracy_scores(model_name, test, predictions):
+    """
+    Uses model_name, test and predictions passed in as arguments
+    Prints different accuracy scores.
+    Does not return anything at this time.
+    """
+    # Calculate the accuracy score by evaluating `y_test` versus `testing_predictions`
+    print(f"{model_name} Predictions Accuracy Score: {accuracy_score(test, predictions)}")
+    print(classification_report(test, predictions, labels = [1, 0]))
+    print(f"{model_name} Balanced Accuracy Score: {balanced_accuracy_score(test, predictions)}")
+
 def logistic_regression_model_generator(X_train, X_test, y_train, y_test, r_state):
     """
     Generates and fits a Logistic Regression model.
@@ -48,10 +60,13 @@ def logistic_regression_model_generator(X_train, X_test, y_train, y_test, r_stat
     # Review the predictions
     #print(f"Logistic Regression Predictions: {predictions}")
 
-    # Calculate the accuracy score by evaluating `y_test` vs. `testing_predictions`
-    print(f"Logistic Regression Predictions Accuracy Score: {accuracy_score(y_test, predictions)}")
-    print(classification_report(y_test, predictions, labels = [1, 0]))
-    print(f"Logistic Regression Balanced Accuracy Score: {balanced_accuracy_score(y_test, predictions)}")
+    # Print accuracy scores
+    display_accuracy_scores("Logistic Regression", y_test, predictions)
+
+    # Print roc_auc_score
+    pred_probas = model.predict_proba(X_train)
+    pred_probas_firsts = [prob[1] for prob in pred_probas]
+    print(f"Logistic Regression roc_auc_score: {roc_auc_score(y_train, pred_probas_firsts)}")
 
 def random_forest_model_generator(X_train, X_test, y_train, y_test, r_state, estimator_count, X_columns):
     """
@@ -73,17 +88,35 @@ def random_forest_model_generator(X_train, X_test, y_train, y_test, r_state, est
     predictions = model.predict(X_test)
     #print(f"Random Forest Predictions: {predictions}")
 
-    # Print the accuracy score
-    print(f"Random Forest Predictions Accuracy Score: {accuracy_score(y_test, predictions)}")
-    print(classification_report(y_test, predictions, labels = [1, 0]))
-    print(f"Random Forest Balanced Accuracy Score: {balanced_accuracy_score(y_test, predictions)}")
+    # Print accuracy scores
+    display_accuracy_scores("Random Forest", y_test, predictions)
     
     # Get the feature importance array
     importances = model.feature_importances_
 
     # List the top 10 most important features
     importances_sorted = sorted(zip(model.feature_importances_, X_columns), reverse=True)
-    importances_sorted[:10]
+    print(f"{importances_sorted[:10]}")
+
+def svm_model_generator(X_train, X_test, y_train, y_test, m_type):
+    """
+    Generates and fits a Support Vector Machine model.
+    Uses training and testing data passed in as arguments.
+    Makes predictions using testing data and prints model accuracy score.
+    Does not return anything.
+    """
+    model = SVC(kernel=m_type)
+
+    # Train an SVM model and print the model score
+    model.fit(X_train, y_train)
+    print(f"SVM Training Data Score: {model.score(X_train, y_train)}")
+    print(f"SVM Testing Data Score: {model.score(X_test, y_test)}")
+    
+    # Make and save testing predictions with the saved logistic regression model using the test data
+    predictions = model.predict(X_test)
+    
+    # Print accuracy scores
+    display_accuracy_scores("SVM", y_test, predictions)
 
 if __name__ == "__main__":
     print("This script should not be run directly! Import these functions for use in another file.")
