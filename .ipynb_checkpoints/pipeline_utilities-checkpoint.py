@@ -1,3 +1,4 @@
+from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report, roc_auc_score
@@ -117,6 +118,26 @@ def svm_model_generator(X_train, X_test, y_train, y_test, m_type):
     
     # Print accuracy scores
     display_accuracy_scores("SVM", y_test, predictions)
+
+def decision_tree_model_generator(X_train, X_test, y_train, y_test):
+    """
+    Generates and fits a Decision Tree model.
+    Uses training and testing data passed in as arguments.
+    Makes predictions using testing data and prints model accuracy score.
+    Does not return anything.
+    """
+    model = tree.DecisionTreeClassifier()
+
+    # Train an SVM model and print the model score
+    model.fit(X_train, y_train)
+    print(f"Decision Tree Training Data Score: {model.score(X_train, y_train)}")
+    print(f"Decision Tree Testing Data Score: {model.score(X_test, y_test)}")
+    
+    # Make and save testing predictions with the saved logistic regression model using the test data
+    predictions = model.predict(X_test)
+    
+    # Print accuracy scores
+    display_accuracy_scores("Decision Tree", y_test, predictions)
 
 if __name__ == "__main__":
     print("This script should not be run directly! Import these functions for use in another file.")
