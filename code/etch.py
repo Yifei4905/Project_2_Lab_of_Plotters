@@ -1,5 +1,12 @@
 import pandas as pd
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, OrdinalEncoder, MinMaxScaler
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
 from sklearn.utils import Bunch
+
+import numpy as np
+from matplotlib.path import Path
+from matplotlib.widgets import LassoSelector
 
 
 occupation_mapping = {
@@ -202,3 +209,132 @@ def load_census(codes=True):
         nominal_features=nominal_features,
         continuous_features=continuous_features
     )
+
+
+def create_education_pipeline():
+    ordered_categories = [
+        ' Children',
+        ' Less than 1st grade', 
+        ' 1st 2nd 3rd or 4th grade', 
+        ' 5th or 6th grade', 
+        ' 7th and 8th grade', 
+        ' 9th grade', 
+        ' 10th grade', 
+        ' 11th grade', 
+        ' 12th grade no diploma', 
+        ' High school graduate', 
+        ' Some college but no degree', 
+        ' Associates degree-occup /vocational', 
+        ' Associates degree-academic program', 
+        ' Bachelors degree(BA AB BS)', 
+        ' Masters degree(MA MS MEng MEd MSW MBA)',
+        ' Doctorate degree(PhD EdD)',
+        ' Prof school degree (MD DDS DVM LLB JD)',
+    ]
+
+    encoder = OrdinalEncoder(categories=[ordered_categories])
+
+    # Education is partially orderable.
+    return Pipeline(steps=[
+        ('ordinal', encoder),
+        ('scaler', MinMaxScaler())
+    ])
+
+
+def create_census_preprocessor(scalers, ones):
+    return ColumnTransformer(
+        transformers = [
+            ('scaler', StandardScaler(), scalers),
+            ('one', OneHotEncoder(sparse_output=False, handle_unknown='ignore'), ones),
+            ('education', create_education_pipeline(), ['education'])
+        ]
+    )
+
+
+def create_census_pipeline(estimator, transformer=None):
+    # This file is all about the hard coding.
+    scalers = [
+        "age",
+        "wage per hour",
+        "capital gains",
+        "capital losses",
+        "dividends from stocks",
+        "num persons worked for employer",
+        "weeks worked in year"
+    ]
+
+    ones = [
+        'class of worker',
+        'detailed industry recode',
+        'detailed occupation recode',
+        # 'education',
+        'enroll in edu inst last wk',
+        'marital stat',
+        'major industry code',
+        'major occupation code',
+        'race',
+        'hispanic origin',
+        'sex',
+        'member of a labor union',
+        'reason for unemployment',
+        'full or part time employment stat',
+        'tax filer stat',
+        'region of previous residence',
+        'state of previous residence',
+        'detailed household and family stat',
+        'detailed household summary in household',
+        'migration code-change in msa',
+        'migration code-change in reg',
+        'migration code-move within reg',
+        'live in this house 1 year ago',
+        'migration prev res in sunbelt',
+        'family members under 18',
+        'country of birth father',
+        'country of birth mother',
+        'country of birth self',
+        'citizenship',
+        'own business or self employed',
+        "fill inc questionnaire for veteran's admin",
+        'veterans benefits',
+        'year'
+    ]
+
+    return Pipeline(
+        steps=[
+                ('preprocessor', transformer if transformer else create_census_preprocessor(scalers, ones)),
+                ('estimator', estimator)
+        ]
+    )
+
+
+class SelectFromCollection():
+    def __init__(self, ax, collection, alpha_other=0.3, onscreen=None):
+        self.canvas = ax.figure.canvas
+        self.collection = collection
+        self.alpha_other = alpha_other
+
+        self.xys = collection.get_offsets()
+        self.Npts = len(self.xys)
+
+        # Ensure that we have separate colors for each object
+        self.fc = collection.get_facecolors()
+        if len(self.fc) == 0:
+            raise ValueError('Collection must have a facecolor')
+        elif len(self.fc) == 1:
+            self.fc = np.tile(self.fc, (self.Npts, 1))
+
+        self.lasso = LassoSelector(ax, onselect=self.onselect)
+        self.ind = []
+
+        self.onscreen = onscreen
+
+    def onselect(self, verts):
+        path = Path(verts)
+        self.ind = np.nonzero(path.contains_points(self.xys))[0]
+
+        self.fc[:, -1] = self.alpha_other
+        self.fc[self.ind, -1] = 1
+        self.collection.set_facecolors(self.fc)
+        if self.onscreen:
+            self.onscreen(self.ind) 
+        self.canvas.draw_idle()
