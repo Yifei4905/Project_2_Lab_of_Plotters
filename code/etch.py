@@ -1,5 +1,6 @@
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder, StandardScaler, OrdinalEncoder, MinMaxScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, OrdinalEncoder, MinMaxScaler, TargetEncoder, LabelEncoder
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.utils import Bunch
@@ -338,3 +339,25 @@ class SelectFromCollection():
         if self.onscreen:
             self.onscreen(self.ind) 
         self.canvas.draw_idle()
+
+
+def teska(estimator, census):
+    encoder = LabelEncoder()
+    y_train_encoded = encoder.fit_transform(census.y_train)
+    y_test_encoded = encoder.transform(census.y_test)
+    pipeline = create_census_pipeline(estimator)
+    pipeline.fit(census.X_train, y_train_encoded)
+
+    feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
+    X_train_encoded = pd.DataFrame(pipeline.named_steps["preprocessor"].transform(census.X_train), columns=feature_names)
+    X_test_encoded = pd.DataFrame(pipeline.named_steps["preprocessor"].transform(census.X_test), columns=feature_names)
+
+    return pipeline, (X_train_encoded, y_train_encoded), (X_test_encoded, y_test_encoded)
+
+
+def ys(estimator, X, y, threshold=0.5):
+    y_probabilities = estimator.predict_proba(X)
+    y_predictions = (y_probabilities[:, 1] >= 0.5).astype(int)
+
+    print(classification_report(y, y_predictions))
+    print(confusion_matrix(y, y_predictions))
