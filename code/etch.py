@@ -260,57 +260,56 @@ def create_census_preprocessor(scalers, ones):
     )
 
 
-def create_census_pipeline(estimator, transformer=None):
-    # This file is all about the hard coding.
-    scalers = [
-        "age",
-        "wage per hour",
-        "capital gains",
-        "capital losses",
-        "dividends from stocks",
-        "num persons worked for employer",
-        "weeks worked in year"
-    ]
+# This file is all about the hard coding.
+census_quantitative = [
+    "age",
+    "wage per hour",
+    "capital gains",
+    "capital losses",
+    "dividends from stocks",
+    "num persons worked for employer",
+    "weeks worked in year"
+]
 
-    ones = [
-        'class of worker',
-        'detailed industry recode',
-        'detailed occupation recode',
-        # 'education',
-        'enroll in edu inst last wk',
-        'marital stat',
-        'major industry code',
-        'major occupation code',
-        'race',
-        'hispanic origin',
-        'sex',
-        'member of a labor union',
-        'reason for unemployment',
-        'full or part time employment stat',
-        'tax filer stat',
-        'region of previous residence',
-        'state of previous residence',
-        'detailed household and family stat',
-        'detailed household summary in household',
-        'migration code-change in msa',
-        'migration code-change in reg',
-        'migration code-move within reg',
-        'live in this house 1 year ago',
-        'migration prev res in sunbelt',
-        'family members under 18',
-        'country of birth father',
-        'country of birth mother',
-        'country of birth self',
-        'citizenship',
-        'own business or self employed',
-        "fill inc questionnaire for veteran's admin",
-        'veterans benefits',
-        'year'
-    ]
+census_qualitative = [
+    'class of worker',
+    'detailed industry recode',
+    'detailed occupation recode',
+    'enroll in edu inst last wk',
+    'marital stat',
+    'major industry code',
+    'major occupation code',
+    'race',
+    'hispanic origin',
+    'sex',
+    'member of a labor union',
+    'reason for unemployment',
+    'full or part time employment stat',
+    'tax filer stat',
+    'region of previous residence',
+    'state of previous residence',
+    'detailed household and family stat',
+    'detailed household summary in household',
+    'migration code-change in msa',
+    'migration code-change in reg',
+    'migration code-move within reg',
+    'live in this house 1 year ago',
+    'migration prev res in sunbelt',
+    'family members under 18',
+    'country of birth father',
+    'country of birth mother',
+    'country of birth self',
+    'citizenship',
+    'own business or self employed',
+    "fill inc questionnaire for veteran's admin",
+    'veterans benefits',
+    'year'
+]
 
+def create_census_pipeline(estimator, quantitative=census_quantitative, qualitative=census_qualitative, transformer=None):
     return Pipeline(
         steps=[
-                ('preprocessor', transformer if transformer else create_census_preprocessor(scalers, ones)),
+                ('preprocessor', transformer if transformer else create_census_preprocessor(quantitative, qualitative)),
                 ('estimator', estimator)
         ]
     )
@@ -323,13 +322,13 @@ def create_resample_pipeline(estimator, sampler):
     ])
 
 
-def teska(estimator, census, sampler=None):
+def teska(estimator, census, sampler=None, transformer=None):
     encoder = LabelEncoder()
     y_train_encoded = encoder.fit_transform(census.y_train)
     y_test_encoded = encoder.transform(census.y_test)
 
     classifier = estimator
-    census_pipeline = create_census_pipeline(classifier)
+    census_pipeline = create_census_pipeline(classifier, transformer=transformer)
     pipeline = census_pipeline
     if sampler:
         resample_pipeline = create_resample_pipeline(census_pipeline, sampler)
@@ -353,6 +352,45 @@ def ys(y, y_probabilities, threshold=0.5):
     y_predictions = (y_probabilities[:, 1] >= threshold).astype(int)
     print(classification_report(y, y_predictions))
     print(confusion_matrix(y, y_predictions))
+
+
+def plot_learning_curve(estimator, X, y, n_splits=5, random_state=42, scoring='f1', save_path=None):
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator, X, y, cv=cv, n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10), scoring=scoring
+    )
+
+    train_mean = np.mean(train_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    val_mean = np.mean(val_scores, axis=1)
+    val_std = np.std(val_scores, axis=1)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_sizes, train_mean, label='Training Score', color='blue', marker='o')
+    plt.plot(train_sizes, val_mean, label='Validation Score', color='green', marker='o')
+
+    plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, color='blue', alpha=0.2)
+    plt.fill_between(train_sizes, val_mean - val_std, val_mean + val_std, color='green', alpha=0.2)
+
+    plt.title('Learning Curve')
+    plt.xlabel('Training Set Size')
+    if isinstance(scoring, str):
+        plt.ylabel(scoring)
+    plt.legend(loc='best')
+    plt.grid(True)
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+def scale_target_transform(quantitative, qualitative, random_state=42):
+    return ColumnTransformer(
+        transformers = [
+            ('quantitative', StandardScaler(), quantitative),
+            ('qualitative', TargetEncoder(random_state=42), qualitative)
+        ]
+    )
 
 
 # No time to work on this :)
@@ -387,33 +425,3 @@ class SelectFromCollection():
         if self.onscreen:
             self.onscreen(self.ind) 
         self.canvas.draw_idle()
-
-
-def plot_learning_curve(estimator, X, y, n_splits=5, random_state=42, scoring='f1', save_path=None):
-    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-
-    train_sizes, train_scores, val_scores = learning_curve(
-        estimator, X, y, cv=cv, n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10), scoring=scoring
-    )
-
-    train_mean = np.mean(train_scores, axis=1)
-    train_std = np.std(train_scores, axis=1)
-    val_mean = np.mean(val_scores, axis=1)
-    val_std = np.std(val_scores, axis=1)
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(train_sizes, train_mean, label='Training Score', color='blue', marker='o')
-    plt.plot(train_sizes, val_mean, label='Validation Score', color='green', marker='o')
-
-    plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, color='blue', alpha=0.2)
-    plt.fill_between(train_sizes, val_mean - val_std, val_mean + val_std, color='green', alpha=0.2)
-
-    plt.title('Learning Curve')
-    plt.xlabel('Training Set Size')
-    if isinstance(scoring, str):
-        plt.ylabel(scoring)
-    plt.legend(loc='best')
-    plt.grid(True)
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    plt.show()
