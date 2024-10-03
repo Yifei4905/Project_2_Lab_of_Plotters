@@ -1,9 +1,17 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, OrdinalEncoder, MinMaxScaler, TargetEncoder, LabelEncoder
+from sklearn.model_selection import cross_val_predict
+from imblearn.pipeline import Pipeline as ImbPipeline
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.utils import Bunch
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import learning_curve
+from sklearn.model_selection import StratifiedKFold
 
 import numpy as np
 from matplotlib.path import Path
@@ -308,6 +316,46 @@ def create_census_pipeline(estimator, transformer=None):
     )
 
 
+def create_resample_pipeline(estimator, sampler):
+    return ImbPipeline(steps=[
+        ('resample', sampler),
+        ('estimator', estimator)
+    ])
+
+
+def teska(estimator, census, sampler=None):
+    encoder = LabelEncoder()
+    y_train_encoded = encoder.fit_transform(census.y_train)
+    y_test_encoded = encoder.transform(census.y_test)
+
+    classifier = estimator
+    census_pipeline = create_census_pipeline(classifier)
+    pipeline = census_pipeline
+    if sampler:
+        resample_pipeline = create_resample_pipeline(census_pipeline, sampler)
+        pipeline = resample_pipeline
+
+    pipeline.fit(census.X_train, y_train_encoded)
+
+    feature_names = census_pipeline.named_steps["preprocessor"].get_feature_names_out()
+    X_train_encoded = pd.DataFrame(census_pipeline.named_steps["preprocessor"].transform(census.X_train), columns=feature_names)
+    X_test_encoded = pd.DataFrame(census_pipeline.named_steps["preprocessor"].transform(census.X_test), columns=feature_names)
+
+    return pipeline, (X_train_encoded, y_train_encoded), (X_test_encoded, y_test_encoded)
+
+
+def predict_probabilities(estimator, X, y, n_splits=5, random_state=42):
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    return cross_val_predict(estimator, X, y, cv=cv, method='predict_proba')
+
+
+def ys(y, y_probabilities, threshold=0.5):
+    y_predictions = (y_probabilities[:, 1] >= threshold).astype(int)
+    print(classification_report(y, y_predictions))
+    print(confusion_matrix(y, y_predictions))
+
+
+# No time to work on this :)
 class SelectFromCollection():
     def __init__(self, ax, collection, alpha_other=0.3, onscreen=None):
         self.canvas = ax.figure.canvas
@@ -341,23 +389,31 @@ class SelectFromCollection():
         self.canvas.draw_idle()
 
 
-def teska(estimator, census):
-    encoder = LabelEncoder()
-    y_train_encoded = encoder.fit_transform(census.y_train)
-    y_test_encoded = encoder.transform(census.y_test)
-    pipeline = create_census_pipeline(estimator)
-    pipeline.fit(census.X_train, y_train_encoded)
+def plot_learning_curve(estimator, X, y, n_splits=5, random_state=42, scoring='f1', save_path=None):
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
 
-    feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
-    X_train_encoded = pd.DataFrame(pipeline.named_steps["preprocessor"].transform(census.X_train), columns=feature_names)
-    X_test_encoded = pd.DataFrame(pipeline.named_steps["preprocessor"].transform(census.X_test), columns=feature_names)
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator, X, y, cv=cv, n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10), scoring=scoring
+    )
 
-    return pipeline, (X_train_encoded, y_train_encoded), (X_test_encoded, y_test_encoded)
+    train_mean = np.mean(train_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    val_mean = np.mean(val_scores, axis=1)
+    val_std = np.std(val_scores, axis=1)
 
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_sizes, train_mean, label='Training Score', color='blue', marker='o')
+    plt.plot(train_sizes, val_mean, label='Validation Score', color='green', marker='o')
 
-def ys(estimator, X, y, threshold=0.5):
-    y_probabilities = estimator.predict_proba(X)
-    y_predictions = (y_probabilities[:, 1] >= 0.5).astype(int)
+    plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, color='blue', alpha=0.2)
+    plt.fill_between(train_sizes, val_mean - val_std, val_mean + val_std, color='green', alpha=0.2)
 
-    print(classification_report(y, y_predictions))
-    print(confusion_matrix(y, y_predictions))
+    plt.title('Learning Curve')
+    plt.xlabel('Training Set Size')
+    if isinstance(scoring, str):
+        plt.ylabel(scoring)
+    plt.legend(loc='best')
+    plt.grid(True)
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.show()
