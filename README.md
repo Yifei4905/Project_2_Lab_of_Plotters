@@ -14,6 +14,12 @@ For Unix (Linux/MacOS):
 2. Run the following command to clone the repository:
    ```bash
    git clone https://github.com/Yifei4905/Project_2_Lab_of_Plotters.git
+
+## Requirements
+- **Python 3.8+**
+- **Libraries**: Pandas, NumPy, Scikit-learn, Seaborn, Imbalanced-learn, Matplotlib, PIL
+- **Installation**: Use `pip install -r requirements.txt` to install dependencies.
+
 ## Usage
 Start Jupyter Notebook from the project directory.
 Open the relevant .ipynb notebook files to explore and run the analysis.
@@ -32,12 +38,6 @@ Additionally, the project provides utilities for scaling, model creation, and ev
 - **Reusable Pipelines**: Implementation of modular and scalable machine learning pipelines for easy experimentation and model training.
 - **Explainability**: Analysis of model decisions using SHAP values to provide transparency into the key factors influencing income predictions.
 
-## MAYBE one line conclusion?? if want details, they can go further down
-
-## Requirements
-- **Python 3.8+**
-- **Libraries**: Pandas, NumPy, Scikit-learn, Seaborn, Imbalanced-learn, Matplotlib, PIL
-- **Installation**: Use `pip install -r requirements.txt` to install dependencies.
 
 ### **Data Model Implementation**
 
