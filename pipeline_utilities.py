@@ -1,5 +1,5 @@
 from sklearn import tree
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report, roc_auc_score
 from sklearn.model_selection import train_test_split
@@ -138,6 +138,66 @@ def decision_tree_model_generator(X_train, X_test, y_train, y_test):
     
     # Print accuracy scores
     display_accuracy_scores("Decision Tree", y_test, predictions)
+
+def gradient_boost_model_generator(X_train, X_test, y_train, y_test, r_state):
+    """
+    Generates and fits a Gradient Boosting CLassifier model.
+    Uses training and testing data and random_state passed in as arguments.
+    Makes predictions using testing data and prints model accuracy score.
+    Does not return anything.
+    """
+    model = GradientBoostingClassifier(random_state=r_state)
+
+    # Train a Gradient Boosting model and print the model score
+    model.fit(X_train, y_train)
+    print(f"Gradient Boosting Training Data Score: {model.score(X_train, y_train)}")
+    print(f"Gradient Boosting Testing Data Score: {model.score(X_test, y_test)}")
+    
+    # Make and save testing predictions using the test data
+    predictions = model.predict(X_test)
+    
+    # Print accuracy scores
+    display_accuracy_scores("Gradient Boosting", y_test, predictions)
+
+def ada_boost_model_generator(X_train, X_test, y_train, y_test, r_state):
+    """
+    Generates and fits an ADA Boosting CLassifier model.
+    Uses training and testing data and random_state passed in as arguments.
+    Makes predictions using testing data and prints model accuracy score.
+    Does not return anything.
+    """
+    model = AdaBoostClassifier(random_state=r_state)
+
+    # Train a Gradient Boosting model and print the model score
+    model.fit(X_train, y_train)
+    print(f"Ada Boosting Training Data Score: {model.score(X_train, y_train)}")
+    print(f"Ada Boosting Testing Data Score: {model.score(X_test, y_test)}")
+    
+    # Make and save testing predictions using the test data
+    predictions = model.predict(X_test)
+    
+    # Print accuracy scores
+    display_accuracy_scores("Ada Boosting", y_test, predictions)
+
+def extra_trees_model_generator(X_train, X_test, y_train, y_test, r_state):
+    """
+    Generates and fits an Extra Trees Classifier model.
+    Uses training and testing data and random_state passed in as arguments.
+    Makes predictions using testing data and prints model accuracy score.
+    Does not return anything.
+    """
+    model = ExtraTreesClassifier(random_state=r_state)
+
+    # Train a Extra Trees model and print the model score
+    model.fit(X_train, y_train)
+    print(f"Extra Trees Training Data Score: {model.score(X_train, y_train)}")
+    print(f"Extra Trees Testing Data Score: {model.score(X_test, y_test)}")
+    
+    # Make and save testing predictions using the test data
+    predictions = model.predict(X_test)
+    
+    # Print accuracy scores
+    display_accuracy_scores("Extra Trees", y_test, predictions)
 
 if __name__ == "__main__":
     print("This script should not be run directly! Import these functions for use in another file.")
