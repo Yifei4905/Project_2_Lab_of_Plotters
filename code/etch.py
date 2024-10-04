@@ -69,68 +69,63 @@ occupation_mapping = {
 }
 
 
+# This was very wrong.
 detailed_industry_mapping = {
-    "00": "NIU(children)",
-    "01": "Agriculture",
-    "02": "Mining",
-    "03": "Construction",
-# Manufacturing
-#   Durable Goods
-    "04": "Lumber and Wood Products, except Furniture",
-    "05": "Furniture and Fixtures",
-    "06": "Stone, Clay, Glass, Concrete Products",
-    "07": "Primary Metals",
-    "08": "Fabricated Metals",
-    "09": "Not Specified Metal Industries",
-    "10": "Machinery, except Electrical",
-    "11": "Electrical Machinery, Equipment, Supplies",
-#   Transportation Equipment
-      "12": "Motor Vehicles and Equipment",
-#     Other Transportation Equipment
-        "13": "Aircraft and Parts",
-        "14": "Other Transportation Equipment",
-    "15": "Professional and Photo Equipment, Watches",
-    "16": "Toys, Amusements, and Sporting Goods",
-    "17": "Miscellaneous and Not Specified",
-#   Nondurable Goods
-      "18": "Food and Kindred Products",
-      "19": "Tobacco Manufactures",
-      "20": "Textile Mill Products",
-      "21": "Apparel and Other Finished Textile Products",
-      "22": "Paper and Allied Products",
-      "23": "Printing, Publishing, and Allied Industries",
-      "24": "Chemicals and Allied Products",
-      "25": "Petroleum and Coal Products",
-      "26": "Rubber and Miscellaneous Plastics Products",
-      "27": "Leather and Leather Products",
-# Transportation, Communications, and Other Public Utilities
-    "28": "Transportation",
-#   Communication and Other Public Utilities
-      "29": "Communication",
-      "30": "Utilities and Sanitary Services",
-#   Wholesale and Retail Trade
-      "31": "Wholesale Trade",
-      "32": "Retail Trade",
-#   Finance, Insurance, and Real Estate
-      "33": "Banking and Other Finance",
-      "34": "Insurance and Real Estate",
-#   Service
-      "35": "Private Household",
-#   Miscellaneous Services
-#   Business and Repair Services
-      "36": "Business Services",
-      "37": "Repair Services",
-    "38": "Personal Service except Private Household",
-    "39": "Entertainment and Recreation Services",
-#   Professional and Related Services
-      "40": "Hospitals",
-      "41": "Health Services, except Hospitals",
-      "42": "Educational Services",
-      "43": "Social Services",
-      "44": "Other Professional Services",
-    "45": "Forestry and Fisheries",
-    "46": "Public Administration",
-    "47": "Never Worked (WKSWORK=0)"
+    "00": "?",
+    "01": "Agriculture Service",
+    "02": "Other Agriculture",
+    "03": "Mining",
+    "04": "Construction",
+# Manufacturing (Durable Goods)
+    "05": "Lumber and wood products, except furniture",
+    "06": "Furniture and fixtures",
+    "07": "Stone clay, glass, and concrete product",
+    "08": "Primary metals",
+    "09": "Fabricated metal",
+    "10": "Not specified metal industries",
+    "11": "Machinery, except electrical",
+    "12": "Electrical machinery, equipment, and supplies",
+    "13": "Motor vehicles and equipment",
+    "14": "Aircraft and parts",
+    "15": "Other transportation equipment",
+    "16": "Professional and photographic equipment, and watches",
+    "17": "Toys, amusements, and sporting goods",
+    "18": "Miscellaneous and not specified manufacturing industries",
+# Manufacturing (Nondurable Goods)
+    "19": "Food and kindred products",
+    "20": "Tobacco manufactures",
+    "21": "Textile mill products",
+    "22": "Apparel and other finished textile products",
+    "23": "Paper and allied products",
+    "24": "Printing, publishing and allied industries",
+    "25": "Chemicals and allied products",
+    "26": "Petroleum and coal products",
+    "27": "Rubber and miscellaneous plastics products",
+    "28": "Leather and leather products",
+    "29": "Transportation",
+    "30": "Communications",
+    "31": "Utilities and Sanitary Services",
+    "32": "Wholesale Trade",
+    "33": "Eating and drinking places",
+    "34": "Other Retail Trade",
+    "35": "Banking and Other Finance",
+    "36": "Insurance and Real Estate",
+    "37": "Private Household Services",
+    "38": "Business Services",
+    "39": "Repair Services",
+    "40": "Personal Services, Except Private Household",
+    "41": "Entertainment and Recreation Services",
+    "42": "Hospitals",
+    "43": "Health Services, Except Hospitals",
+    "44": "Educational Services",
+    "45": "Social Services",
+    "46": "Other Professional Services",
+    "47": "Forestry and Fisheries",
+    "48": "Justice, Public Order and Safety",
+    "49": "Administration of Human Resource Programs",
+    "50": "National Security and Internal Affairs",
+    "51": "Other Public Administration",
+    "52": "Armed Forces last job, currently unemployed"
 }
 
 
@@ -200,7 +195,7 @@ def load_census(codes=True):
     train_df = pd.read_csv('../data/census/census-income.data', names=names, index_col=False)
     test_df = pd.read_csv('../data/census/census-income.test', names=names, index_col=False)
 
-    if codes:
+    if not codes:
         # The formatting was strange so the descriptions may be wrong.
         train_df['detailed industry recode'] = train_df['detailed industry recode'].astype(str).str.zfill(2).map(detailed_industry_mapping)
         test_df['detailed industry recode'] = test_df['detailed industry recode'].astype(str).str.zfill(2).map(detailed_industry_mapping)
@@ -253,7 +248,7 @@ def create_education_pipeline():
 def create_census_preprocessor(scalers, ones):
     return ColumnTransformer(
         transformers = [
-            ('scaler', StandardScaler(), scalers),
+            # ('scaler', StandardScaler(), scalers),
             ('one', OneHotEncoder(sparse_output=False, handle_unknown='ignore'), ones),
             ('education', create_education_pipeline(), ['education'])
         ]
