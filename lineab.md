@@ -2,7 +2,7 @@
 
 1. Many features are irrelevant for prediction.
 2. Models perform similarly.
-3. Models each have a high ROC value. They have trouble distinguishing True Positive and False Negative (designed to capture True Positive)
+3. Models each have a high ROC value. They have trouble distinguishing True Positive and False Positive (trade off designed to capture True Positive)
 
 # Occupations
 
