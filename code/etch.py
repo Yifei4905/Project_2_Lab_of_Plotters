@@ -248,7 +248,7 @@ def create_education_pipeline():
 def create_census_preprocessor(scalers, ones):
     return ColumnTransformer(
         transformers = [
-            # ('scaler', StandardScaler(), scalers),
+            ('scaler', StandardScaler(), scalers),
             ('one', OneHotEncoder(sparse_output=False, handle_unknown='ignore'), ones),
             ('education', create_education_pipeline(), ['education'])
         ]
