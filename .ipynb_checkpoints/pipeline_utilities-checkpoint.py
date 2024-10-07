@@ -36,7 +36,7 @@ def display_accuracy_scores(model_name, test, predictions):
     Prints different accuracy scores.
     Does not return anything at this time.
     """
-    # Calculate the accuracy score by evaluating `y_test` versus `testing_predictions`
+    # Calculate the accuracy score by evaluating `test` versus `predictions`
     print(f"{model_name} Predictions Accuracy Score: {accuracy_score(test, predictions)}")
     print(classification_report(test, predictions, labels = [1, 0]))
     print(f"{model_name} Balanced Accuracy Score: {balanced_accuracy_score(test, predictions)}")
@@ -113,7 +113,7 @@ def svm_model_generator(X_train, X_test, y_train, y_test, m_type):
     print(f"SVM Training Data Score: {model.score(X_train, y_train)}")
     print(f"SVM Testing Data Score: {model.score(X_test, y_test)}")
     
-    # Make and save testing predictions with the saved logistic regression model using the test data
+    # Make and save testing predictions using the test data
     predictions = model.predict(X_test)
     
     # Print accuracy scores
@@ -128,12 +128,12 @@ def decision_tree_model_generator(X_train, X_test, y_train, y_test):
     """
     model = tree.DecisionTreeClassifier()
 
-    # Train an SVM model and print the model score
+    # Train a Decision Tree model and print the model score
     model.fit(X_train, y_train)
     print(f"Decision Tree Training Data Score: {model.score(X_train, y_train)}")
     print(f"Decision Tree Testing Data Score: {model.score(X_test, y_test)}")
     
-    # Make and save testing predictions with the saved logistic regression model using the test data
+    # Make and save testing predictions with the model using the test data
     predictions = model.predict(X_test)
     
     # Print accuracy scores
@@ -168,7 +168,7 @@ def ada_boost_model_generator(X_train, X_test, y_train, y_test, r_state):
     """
     model = AdaBoostClassifier(random_state=r_state)
 
-    # Train a Gradient Boosting model and print the model score
+    # Train an ADA Boosting model and print the model score
     model.fit(X_train, y_train)
     print(f"Ada Boosting Training Data Score: {model.score(X_train, y_train)}")
     print(f"Ada Boosting Testing Data Score: {model.score(X_test, y_test)}")
@@ -201,4 +201,3 @@ def extra_trees_model_generator(X_train, X_test, y_train, y_test, r_state):
 
 if __name__ == "__main__":
     print("This script should not be run directly! Import these functions for use in another file.")
-
