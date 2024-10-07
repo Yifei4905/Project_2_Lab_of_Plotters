@@ -3,6 +3,7 @@
 ## Developing an ML model to solve, analyze, or visualize a problem of your choice
 
 ### Data Source - https://archive.ics.uci.edu/dataset/117/census+income+kdd
+#### Citation: Census-Income (KDD) [Dataset]. (2000). UCI Machine Learning Repository. https://doi.org/10.24432/C5N30T.
 
 ### Questions for exploration
 1. Is there a relationship between census demographic data and income over/under USD 50,000?
@@ -41,4 +42,7 @@
 * Undersampled Random Forest model had the best balanced accuracy score (87%)
 * PCA analysis was not effective at reducing dimensionality
 * The balanced accuracy score seems to come at the expense of the F1 scores
-* For a better analysis, I could get more balanced data directly from https://data.census.gov/.
+* For a better analysis, I could get more balanced data directly from https://data.census.gov/
+
+### Sources of code
+* Most of my code is based on code provided in exercises across multiple weeks during the AI Bootcamp.
